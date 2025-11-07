@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HOO Calculator</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --border:#e5e7ef; --muted:#646b7a; --ink:#0f172a;
+      --accent:#0d6efd; --inset:#fafbff; --input:#fff7cc; --tableHead:#0f6fae; --tableHeadText:#fff;
+    }
+    html,body{height:100%}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    .wrap{max-width:1200px;margin:28px auto;padding:20px}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 30px rgba(16,24,40,.06);}
+    .header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:center;justify-content:space-between}
+    h1{font-size:20px;margin:0}
+    .sub{color:var(--muted);font-size:12px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;padding:16px 20px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    label{font-size:12px;color:#334155}
+    input, select{border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:14px;background:#fff}
+    input[type="number"]{text-align:right}
+    .btn{border:0;border-radius:10px;padding:9px 12px;cursor:pointer}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-ghost{background:#eef3ff;color:#1e293b}
+    .actions{display:flex;gap:8px;align-items:center}
+
+    /* Table */
+    .sheet{padding:0 20px 20px}
+    table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--border);border-radius:12px}
+    thead th{background:var(--tableHead);color:var(--tableHeadText);font-weight:600;padding:10px 8px;border-right:1px solid #0d5e94}
+    thead th:last-child{border-right:0}
+    tbody td, tbody th{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px 8px;vertical-align:middle}
+    tbody tr:last-child td, tbody tr:last-child th{border-bottom:0}
+    tbody td:last-child, tbody th:last-child{border-right:0}
+    tbody th{background:#f8fafc;text-align:left;font-weight:600}
+
+    .inputcell input{width:100%;background:var(--input)}
+    .num{ text-align:right }
+    .totalCell{background:#fff7a1;font-weight:700}
+
+    .muted{color:var(--muted);font-size:12px}
+    .note{padding:10px 20px;color:#475569}
+    .footer{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-top:1px dashed var(--border);}
+    .tag{font-size:12px;color:#334155;background:#eef2ff;border:1px solid #dbe2ff;border-radius:999px;padding:4px 8px}
+
+    @media (max-width: 980px){
+      .grid{grid-template-columns:repeat(6,1fr)}
+      thead th, tbody td, tbody th{font-size:12px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <div class="header">
+        <div>
+          <h1>HOO Calculator</h1>
+          <div class="sub">All calculations are client-side (no backend). Update inputs; results refresh instantly.</div>
+        </div>
+        <div class="actions">
+          <button id="btnShare" class="btn btn-ghost" title="Copy a link with current state">Share Link</button>
+          <button id="btnPrint" class="btn btn-primary">Print / PDF</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="field" style="grid-column: span 2;">
+          <label>Store Number</label>
+          <input id="storeId" inputmode="numeric" placeholder="e.g., 1010" />
+        </div>
+        <div class="field" style="grid-column: span 2;">
+          <label>OD Type</label>
+          <select id="odType">
+            <option value="EMP">Employed / EECA / MACYS PR</option>
+            <option value="SUB">Sub lease / LRFT No SS / Macys</option>
+            <option value="LRFTU">LRFT Universal / LRFT Friendly PC</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column: span 2;">
+          <label>Lab % (from store settings)</label>
+          <input id="labPct" type="number" min="0" max="100" step="0.01" placeholder="e.g., 12.5" />
+        </div>
+        <div class="field" style="grid-column: span 3;">
+          <label>Load Store Settings CSV (optional: columns store_number, lab_pct, od_type)</label>
+          <input id="csvFile" type="file" accept=".csv" />
+          <div class="muted">If provided, the app will auto-fill Lab % and OD Type based on Store Number.</div>
+        </div>
+        <div class="field" style="grid-column: span 3;align-self:end">
+          <span class="muted" id="status"></span>
+        </div>
+      </div>
+
+      <div class="sheet">
+        <table id="calc">
+          <thead>
+            <tr>
+              <th style="min-width:260px">&nbsp;</th>
+              <th>Sunday</th>
+              <th>Monday</th>
+              <th>Tuesday</th>
+              <th>Wednesday</th>
+              <th>Thursday</th>
+              <th>Friday</th>
+              <th>Saturday</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Earned Total: All Depts</th>
+              <td class="num totalCell" data-out="earnedTotal-0">0.0</td>
+              <td class="num totalCell" data-out="earnedTotal-1">0.0</td>
+              <td class="num totalCell" data-out="earnedTotal-2">0.0</td>
+              <td class="num totalCell" data-out="earnedTotal-3">0.0</td>
+              <td class="num totalCell" data-out="earnedTotal-4">0.0</td>
+              <td class="num totalCell" data-out="earnedTotal-5">0.0</td>
+              <td class="num totalCell" data-out="earnedTotal-6">0.0</td>
+              <td class="num totalCell" data-out="earnedTotalTot">0.0</td>
+            </tr>
+            <tr>
+              <th>Retail Hours of Operation</th>
+              <td class="inputcell"><input data-in="retail-0" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="retail-1" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="retail-2" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="retail-3" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="retail-4" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="retail-5" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="retail-6" type="number" min="0" step="0.01"></td>
+              <td class="num" data-out="retailTot">0</td>
+            </tr>
+            <tr>
+              <th>Gross Units Sold</th>
+              <td class="inputcell"><input data-in="units-0" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="units-1" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="units-2" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="units-3" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="units-4" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="units-5" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="units-6" type="number" min="0" step="1"></td>
+              <td class="num" data-out="unitsTot">0</td>
+            </tr>
+            <tr>
+              <th>Earned Retail Hours <span class="muted">= max(Retail*1.5, Retail + 1 + Units*0.75)</span></th>
+              <td class="num" data-out="earnedRetail-0">0.0</td>
+              <td class="num" data-out="earnedRetail-1">0.0</td>
+              <td class="num" data-out="earnedRetail-2">0.0</td>
+              <td class="num" data-out="earnedRetail-3">0.0</td>
+              <td class="num" data-out="earnedRetail-4">0.0</td>
+              <td class="num" data-out="earnedRetail-5">0.0</td>
+              <td class="num" data-out="earnedRetail-6">0.0</td>
+              <td class="num" data-out="earnedRetailTot">0.0</td>
+            </tr>
+            <tr>
+              <th>Earned Lab Hours <span class="muted">= Earned Retail × Lab %</span></th>
+              <td class="num" data-out="earnedLab-0">0.0</td>
+              <td class="num" data-out="earnedLab-1">0.0</td>
+              <td class="num" data-out="earnedLab-2">0.0</td>
+              <td class="num" data-out="earnedLab-3">0.0</td>
+              <td class="num" data-out="earnedLab-4">0.0</td>
+              <td class="num" data-out="earnedLab-5">0.0</td>
+              <td class="num" data-out="earnedLab-6">0.0</td>
+              <td class="num" data-out="earnedLabTot">0.0</td>
+            </tr>
+            <tr>
+              <th>Doctor Hours of Operation</th>
+              <td class="inputcell"><input data-in="doc-0" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="doc-1" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="doc-2" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="doc-3" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="doc-4" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="doc-5" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="doc-6" type="number" min="0" step="0.01"></td>
+              <td class="num" data-out="docTot">0</td>
+            </tr>
+            <tr>
+              <th>Exams</th>
+              <td class="inputcell"><input data-in="exams-0" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="exams-1" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="exams-2" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="exams-3" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="exams-4" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="exams-5" type="number" min="0" step="1"></td>
+              <td class="inputcell"><input data-in="exams-6" type="number" min="0" step="1"></td>
+              <td class="num" data-out="examsTot">0</td>
+            </tr>
+            <tr>
+              <th>OD Aligned Hours <span class="muted">(enabled only for LRFT Universal / Friendly PC)</span></th>
+              <td class="inputcell"><input data-in="od-0" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="od-1" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="od-2" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="od-3" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="od-4" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="od-5" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="od-6" type="number" min="0" step="0.01"></td>
+              <td class="num" data-out="odTot">0</td>
+            </tr>
+            <tr>
+              <th>Earned Patient Care Hours <span class="muted">EMP: max(Doc Hrs, Exams×0.6) · SUB: 0 · LRFTU: OD Aligned</span></th>
+              <td class="num" data-out="earnedPC-0">0.0</td>
+              <td class="num" data-out="earnedPC-1">0.0</td>
+              <td class="num" data-out="earnedPC-2">0.0</td>
+              <td class="num" data-out="earnedPC-3">0.0</td>
+              <td class="num" data-out="earnedPC-4">0.0</td>
+              <td class="num" data-out="earnedPC-5">0.0</td>
+              <td class="num" data-out="earnedPC-6">0.0</td>
+              <td class="num" data-out="earnedPCTot">0.0</td>
+            </tr>
+            <tr>
+              <th>Other Hours / Earmarks</th>
+              <td class="inputcell"><input data-in="other-0" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="other-1" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="other-2" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="other-3" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="other-4" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="other-5" type="number" min="0" step="0.01"></td>
+              <td class="inputcell"><input data-in="other-6" type="number" min="0" step="0.01"></td>
+              <td class="num" data-out="otherTot">0.0</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note">Inputs are highlighted in light yellow. All values are per-day; totals are weekly sums. Lab % expects a number like <b>12.5</b> (for 12.5%).</div>
+      </div>
+
+      <div class="footer">
+        <span class="muted">Nothing is uploaded; everything computes in your browser.</span>
+        <span class="tag" id="version">v2025.11.07</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (s,root=document) => root.querySelector(s);
+    const $$ = (s,root=document) => Array.from(root.querySelectorAll(s));
+    const days = [0,1,2,3,4,5,6];
+    const fmt = n => (Number.isFinite(n) ? n.toFixed(1) : '0.0');
+    const sum = arr => arr.reduce((a,b)=>a+(Number(b)||0),0);
+
+    function getLabPct(){
+      const v = parseFloat($('#labPct').value);
+      return Number.isFinite(v) ? v/100 : 0;
+    }
+
+    function odType(){ return $('#odType').value; }
+
+    function val(id){
+      const el = $(`[data-in="${id}"]`);
+      return el ? parseFloat(el.value||'0') : 0;
+    }
+
+    function setOut(key, value){
+      const el = $(`[data-out="${key}"]`);
+      if(el) el.textContent = fmt(value);
+    }
+
+    function toggleODAlignedInputs(){
+      const enabled = (odType()==='LRFTU');
+      days.forEach(d=>{
+        const el = $(`[data-in="od-${d}"]`);
+        if(el){ el.disabled = !enabled; el.style.opacity = enabled?1:.5; el.title = enabled?"":"Enabled only for LRFT Universal/Friendly PC"; }
+      });
+    }
+
+    function recalc(){
+      toggleODAlignedInputs();
+
+      const lab = getLabPct();
+
+      let retailRow = [], unitsRow=[], docRow=[], examsRow=[], odRow=[], otherRow=[];
+      days.forEach(d=>{
+        retailRow[d] = val(`retail-${d}`);
+        unitsRow[d]  = val(`units-${d}`);
+        docRow[d]    = val(`doc-${d}`);
+        examsRow[d]  = val(`exams-${d}`);
+        odRow[d]     = val(`od-${d}`);
+        otherRow[d]  = val(`other-${d}`);
+      });
+
+      // Earned Retail = max(Retail*1.5, Retail + 1 + Units*0.75)
+      const earnedRetail = days.map(d => Math.max(retailRow[d]*1.5, retailRow[d] + 1 + unitsRow[d]*0.75));
+      // Earned Lab = Earned Retail * lab%
+      const earnedLab = days.map(d => earnedRetail[d] * lab);
+      // Earned Patient Care
+      const type = odType();
+      const earnedPC = days.map(d => {
+        if(type==='EMP') return Math.max(docRow[d], examsRow[d]*0.6);
+        if(type==='SUB') return 0; // Accept no input
+        if(type==='LRFTU') return odRow[d];
+        return 0;
+      });
+
+      // Earned Total: All Depts = Earned Retail + Earned Lab + Earned Patient Care + Other
+      const earnedTotal = days.map(d => earnedRetail[d] + earnedLab[d] + earnedPC[d] + otherRow[d]);
+
+      // Output per-day
+      days.forEach(d=>{
+        setOut(`earnedRetail-${d}`, earnedRetail[d]);
+        setOut(`earnedLab-${d}`, earnedLab[d]);
+        setOut(`earnedPC-${d}`, earnedPC[d]);
+        setOut(`earnedTotal-${d}`, earnedTotal[d]);
+      });
+
+      // Totals
+      $('[data-out="retailTot"]').textContent = fmt(sum(retailRow));
+      $('[data-out="unitsTot"]').textContent  = fmt(sum(unitsRow));
+      $('[data-out="docTot"]').textContent    = fmt(sum(docRow));
+      $('[data-out="examsTot"]').textContent  = fmt(sum(examsRow));
+      $('[data-out="odTot"]').textContent     = fmt(sum(odRow));
+      $('[data-out="otherTot"]').textContent  = fmt(sum(otherRow));
+      setOut('earnedRetailTot', sum(earnedRetail));
+      setOut('earnedLabTot', sum(earnedLab));
+      setOut('earnedPCTot', sum(earnedPC));
+      setOut('earnedTotalTot', sum(earnedTotal));
+
+      saveToUrl();
+    }
+
+    function wireInputs(){
+      $$('#calc input, #odType, #labPct, #storeId').forEach(el=>{
+        el.addEventListener('input', recalc);
+        el.addEventListener('change', recalc);
+      });
+    }
+
+    // Simple CSV loader for store settings
+    const storeSettings = new Map();
+    $('#csvFile').addEventListener('change', async (e)=>{
+      const f = e.target.files[0];
+      if(!f){ return; }
+      const text = await f.text();
+      const rows = text.split(/\r?\n/).filter(x=>x.trim().length);
+      // Expect header: store_number, lab_pct, od_type
+      const header = rows.shift().split(',').map(s=>s.trim().toLowerCase());
+      const iStore = header.indexOf('store_number');
+      const iLab   = header.indexOf('lab_pct');
+      const iType  = header.indexOf('od_type');
+      rows.forEach(line=>{
+        const cols = line.split(',');
+        if(cols.length>0){
+          storeSettings.set(String(cols[iStore]).trim(), {
+            lab: parseFloat(cols[iLab])||0,
+            type: String(cols[iType]||'').trim()
+          });
+        }
+      });
+      $('#status').textContent = `Loaded ${storeSettings.size} store settings.`;
+      applyStoreSettings();
+    });
+
+    function applyStoreSettings(){
+      const id = $('#storeId').value.trim();
+      if(!id) return;
+      const s = storeSettings.get(id);
+      if(!s) return;
+      if(Number.isFinite(s.lab)) $('#labPct').value = s.lab;
+      if(s.type){
+        const val = s.type.toUpperCase();
+        if(val.includes('LRFT') && (val.includes('UNIVERSAL') || val.includes('FRIENDLY'))) $('#odType').value = 'LRFTU';
+        else if(val.includes('SUB')) $('#odType').value = 'SUB';
+        else $('#odType').value = 'EMP';
+      }
+      recalc();
+    }
+
+    $('#storeId').addEventListener('change', applyStoreSettings);
+
+    // Share state via URL params (no backend)
+    function saveToUrl(){
+      const p = new URLSearchParams();
+      p.set('store', $('#storeId').value||'');
+      p.set('od', $('#odType').value);
+      p.set('lab', $('#labPct').value||'');
+      days.forEach(d=>{
+        ['retail','units','doc','exams','od','other'].forEach(k=>{
+          const v = $(`[data-in="${k}-${d}"]`).value;
+          if(v) p.set(`${k}${d}`, v);
+        });
+      });
+      history.replaceState(null, '', location.pathname + (p.toString()?`?${p.toString()}`:''));
+    }
+    function loadFromUrl(){
+      const q = new URLSearchParams(location.search);
+      if(q.has('store')) $('#storeId').value = q.get('store');
+      if(q.has('od')) $('#odType').value = q.get('od');
+      if(q.has('lab')) $('#labPct').value = q.get('lab');
+      days.forEach(d=>{
+        ['retail','units','doc','exams','od','other'].forEach(k=>{
+          const key = `${k}${d}`;
+          if(q.has(key)) $(`[data-in="${k}-${d}"]`).value = q.get(key);
+        });
+      });
+    }
+
+    // Buttons
+    $('#btnShare').addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(location.href); $('#status').textContent = 'Link copied'; }
+      catch{ $('#status').textContent = 'Copy failed'; }
+      setTimeout(()=> $('#status').textContent='', 1500);
+    });
+    $('#btnPrint').addEventListener('click', ()=> window.print());
+
+    // Init
+    loadFromUrl();
+    wireInputs();
+    recalc();
+  </script>
+</body>
+</html>
