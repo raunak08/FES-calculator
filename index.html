@@ -7,17 +7,16 @@
 <style>
   :root{
     --bg:#f6f7fb; --card:#fff; --border:#d0d4e4; --ink:#0f172a; --muted:#667085;
-    --input:#fff7c1;             /* yellow for input */
-    --retail:#fff8e1; --lab:#e1f5fe; --doctor:#e8f5e9; --other:#f3e5f5;
+    --input:#fff7c1; --retail:#fff8e1; --lab:#e1f5fe; --doctor:#e8f5e9; --other:#f3e5f5;
     --head:#0f6fae; --headText:#fff;
   }
   body{margin:0;background:var(--bg);font-family:Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
   .wrap{max-width:1200px;margin:20px auto;padding:10px}
-  h1{text-align:center;font-size:22px;margin:0 0 12px;font-weight:700}
+  h1{text-align:center;font-size:22px;margin:0 0 4px;font-weight:700}
+  .subtitle{text-align:center;font-size:13px;color:#374151;margin-bottom:12px;font-style:italic}
   .bar{display:flex;gap:20px;align-items:flex-start;justify-content:center;flex-wrap:wrap;margin:8px 0 16px}
   label{font-size:13px;color:#334155;font-weight:600}
   select,input{border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:14px;background:var(--input)}
-  /* center numbers in inputs and give spinner breathing room */
   input[type="number"]{text-align:center;padding-right:28px;}
 
   table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
@@ -27,35 +26,22 @@
   tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
   tbody td:last-child,tbody th:last-child{border-right:0}
   tbody th{font-weight:600;text-align:left;color:#111827}
+  td,.out{text-align:center;font-variant-numeric:tabular-nums;}
 
-  /* center all numeric cells/outputs */
-  td, .out { text-align:center; font-variant-numeric: tabular-nums; }
-
-  /* department row banding */
-  tr.retail{background:var(--retail)}
-  tr.lab{background:var(--lab)}
-  tr.doctor{background:var(--doctor)}
-  tr.other{background:var(--other)}
-
-  /* inputs only in day columns are yellow; totals have no input */
+  tr.retail{background:var(--retail)} tr.lab{background:var(--lab)}
+  tr.doctor{background:var(--doctor)} tr.other{background:var(--other)}
   td.inputcell input{width:100%;background:var(--input);border-radius:6px}
-
-  /* make earned rows bold */
-  .boldRow th, .boldRow td { font-weight:800; }
-
-  /* total row separated & bold */
+  .boldRow th,.boldRow td{font-weight:800;}
   tr.totalRow th,tr.totalRow td{background:#fff;border-top:3px solid #000;font-weight:800}
   tr.totalRow td{font-size:15px}
 
-  /* STOP the band color at Total column (keep Total white) */
+  /* stop band color at Total column (keep Total white) */
   tbody tr.retail  td:last-child,
   tbody tr.lab     td:last-child,
   tbody tr.doctor  td:last-child,
-  tbody tr.other   td:last-child { background:#fff !important; }
+  tbody tr.other   td:last-child {background:#fff !important;}
 
-  /* gray disabled inputs */
   td.inputcell.disabled input{background:#e0e0e0!important}
-
   .muted{color:var(--muted);font-size:12px}
   .footnote{margin-top:10px;font-size:12px;color:#334155;text-align:center}
 </style>
@@ -63,6 +49,7 @@
 <body>
 <div class="wrap">
   <h1>Field Earned Scenario Calculator</h1>
+  <div class="subtitle">Enter data for all cells that are colored in yellow!</div>
 
   <div class="bar">
     <div>
@@ -267,7 +254,7 @@ function recalc(){
   writeRow("earnedPC",     ePC);
   writeRow("earnedTotal",  eTot);
 
-  // Totals
+  // Totals (rightmost column)
   const w = (k,a)=>{ const el=$(`[data-out="${k}Tot"]`); if(el) el.textContent=fmt(sum(a)); };
   w("retail", retail);  w("units",  units);  w("doc",    doc);   w("exams", exams);
   w("od",     odal);    w("other",  other);  w("earnedRetail", eRetail);
