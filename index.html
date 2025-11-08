@@ -114,8 +114,69 @@
         <td class="num" data-out="earnedRetail-6">0.0</td><td class="num" data-out="earnedRetailTot">0.0</td>
       </tr>
 
-      <!-- (rest of the table unchanged) -->
+      <!-- LAB -->
+      <tr class="lab boldRow">
+        <th>Earned Lab Hours <small class="muted">Earned Retail × Lab%</small></th>
+        <td class="num" data-out="earnedLab-0">0.0</td><td class="num" data-out="earnedLab-1">0.0</td>
+        <td class="num" data-out="earnedLab-2">0.0</td><td class="num" data-out="earnedLab-3">0.0</td>
+        <td class="num" data-out="earnedLab-4">0.0</td><td class="num" data-out="earnedLab-5">0.0</td>
+        <td class="num" data-out="earnedLab-6">0.0</td><td class="num" data-out="earnedLabTot">0.0</td>
+      </tr>
 
+      <!-- DOCTOR -->
+      <tr class="doctor" data-row="doc">
+        <th>Doctor Hours of Operation</th>
+        <td class="inputcell"><input data-in="doc-0" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-1" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-2" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-3" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-4" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-5" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-6" type="number" step="0.01"></td>
+        <td class="num" data-out="docTot">0.0</td>
+      </tr>
+      <tr class="doctor" data-row="exams">
+        <th>Exams</th>
+        <td class="inputcell"><input data-in="exams-0" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-1" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-2" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-3" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-4" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-5" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-6" type="number" step="1"></td>
+        <td class="num" data-out="examsTot">0.0</td>
+      </tr>
+      <tr class="doctor" data-row="od">
+        <th>OD Aligned Hours <small class="muted">(LRFT Universal / Friendly PC only)</small></th>
+        <td class="inputcell"><input data-in="od-0" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-1" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-2" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-3" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-4" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-5" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-6" type="number" step="0.01"></td>
+        <td class="num" data-out="odTot">0.0</td>
+      </tr>
+      <tr class="doctor boldRow">
+        <th>Earned Patient Care Hours <small class="muted">EMP: max(Doc, Exams×0.6) vs weekly baseline (8.8 if ΣExams&gt;60 else 5.5) distributed by exam share · SUB: 0 · LRFTU: OD Aligned</small></th>
+        <td class="num" data-out="earnedPC-0">0.0</td><td class="num" data-out="earnedPC-1">0.0</td>
+        <td class="num" data-out="earnedPC-2">0.0</td><td class="num" data-out="earnedPC-3">0.0</td>
+        <td class="num" data-out="earnedPC-4">0.0</td><td class="num" data-out="earnedPC-5">0.0</td>
+        <td class="num" data-out="earnedPC-6">0.0</td><td class="num" data-out="earnedPCTot">0.0</td>
+      </tr>
+
+      <!-- OTHER -->
+      <tr class="other">
+        <th>Other Hours / Earmarks</th>
+        <td class="inputcell"><input data-in="other-0" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-1" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-2" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-3" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-4" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-5" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-6" type="number" step="0.01"></td>
+        <td class="num" data-out="otherTot">0.0</td>
+      </tr>
     </tbody>
   </table>
 
@@ -144,10 +205,10 @@ function recalc(){
   const labPct = num($("#labPct").value)/100;
   const retail = readRow("retail"), units  = readRow("units"), doc = readRow("doc"), exams = readRow("exams"), odal = readRow("od"), other  = readRow("other");
 
-  // Earned Retail per day — show 0 if Retail=0
+  // Earned Retail per day — only apply +1 rule if Retail > 0
   const eRetail = days.map(i => retail[i] > 0 ? Math.max(retail[i]*1.5, retail[i] + 1 + units[i]*0.75) : 0);
 
-  const eLab = days.map(i => eRetail[i] * labPct);
+  const eLab    = days.map(i => eRetail[i] * labPct);
   const odType = $("#odType").value;
   let ePC;
 
