@@ -17,7 +17,9 @@
   .bar{display:flex;gap:20px;align-items:flex-end;justify-content:center;flex-wrap:wrap;margin:8px 0 16px}
   label{font-size:13px;color:#334155;font-weight:600}
   select,input{border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:14px;background:var(--input)}
-  input[type="number"]{text-align:right;padding-right:24px;} /* space before arrows */
+  /* center numbers in inputs and give spinner breathing room */
+  input[type="number"]{text-align:center;padding-right:28px;}
+
   table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
   thead th{background:var(--head);color:var(--headText);padding:8px;font-size:14px;border-right:1px solid #0d5e94}
   thead th:last-child{border-right:0}
@@ -25,12 +27,22 @@
   tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
   tbody td:last-child,tbody th:last-child{border-right:0}
   tbody th{font-weight:600;text-align:left;color:#111827}
-  tr.retail{background:var(--retail)} tr.lab{background:var(--lab)}
-  tr.doctor{background:var(--doctor)} tr.other{background:var(--other)}
+
+  /* center all numeric cells/outputs */
+  td, .out { text-align:center; font-variant-numeric: tabular-nums; }
+
+  tr.retail{background:var(--retail)}
+  tr.lab{background:var(--lab)}
+  tr.doctor{background:var(--doctor)}
+  tr.other{background:var(--other)}
+
   td.inputcell input{width:100%;background:var(--input);border-radius:6px}
-  td.num,.out{text-align:right;font-variant-numeric:tabular-nums}
   tr.totalRow th,tr.totalRow td{background:#fff;border-top:3px solid #000;font-weight:800}
   tr.totalRow td{font-size:15px}
+
+  /* make earned rows bold */
+  .boldRow th, .boldRow td { font-weight:800; }
+
   td.inputcell.disabled input{background:#e0e0e0!important}
   .muted{color:var(--muted);font-size:12px}
 </style>
@@ -75,19 +87,27 @@
       <!-- RETAIL -->
       <tr class="retail">
         <th>Retail Hours of Operation</th>
-        <td class="inputcell"><input data-in="retail-0"></td><td class="inputcell"><input data-in="retail-1"></td>
-        <td class="inputcell"><input data-in="retail-2"></td><td class="inputcell"><input data-in="retail-3"></td>
-        <td class="inputcell"><input data-in="retail-4"></td><td class="inputcell"><input data-in="retail-5"></td>
-        <td class="inputcell"><input data-in="retail-6"></td><td class="num" data-out="retailTot">0.0</td>
+        <td class="inputcell"><input data-in="retail-0" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="retail-1" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="retail-2" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="retail-3" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="retail-4" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="retail-5" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="retail-6" type="number" step="0.01"></td>
+        <td class="num" data-out="retailTot">0.0</td>
       </tr>
       <tr class="retail">
         <th>Gross Units Sold</th>
-        <td class="inputcell"><input data-in="units-0"></td><td class="inputcell"><input data-in="units-1"></td>
-        <td class="inputcell"><input data-in="units-2"></td><td class="inputcell"><input data-in="units-3"></td>
-        <td class="inputcell"><input data-in="units-4"></td><td class="inputcell"><input data-in="units-5"></td>
-        <td class="inputcell"><input data-in="units-6"></td><td class="num" data-out="unitsTot">0.0</td>
+        <td class="inputcell"><input data-in="units-0" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="units-1" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="units-2" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="units-3" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="units-4" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="units-5" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="units-6" type="number" step="1"></td>
+        <td class="num" data-out="unitsTot">0.0</td>
       </tr>
-      <tr class="retail">
+      <tr class="retail boldRow">
         <th>Earned Retail Hours <small class="muted">max(Retail×1.5, Retail + 1 + Units×0.75)</small></th>
         <td class="num" data-out="earnedRetail-0">0.0</td><td class="num" data-out="earnedRetail-1">0.0</td>
         <td class="num" data-out="earnedRetail-2">0.0</td><td class="num" data-out="earnedRetail-3">0.0</td>
@@ -96,7 +116,7 @@
       </tr>
 
       <!-- LAB -->
-      <tr class="lab">
+      <tr class="lab boldRow">
         <th>Earned Lab Hours <small class="muted">Earned Retail × Lab%</small></th>
         <td class="num" data-out="earnedLab-0">0.0</td><td class="num" data-out="earnedLab-1">0.0</td>
         <td class="num" data-out="earnedLab-2">0.0</td><td class="num" data-out="earnedLab-3">0.0</td>
@@ -107,27 +127,39 @@
       <!-- DOCTOR -->
       <tr class="doctor" data-row="doc">
         <th>Doctor Hours of Operation</th>
-        <td class="inputcell"><input data-in="doc-0"></td><td class="inputcell"><input data-in="doc-1"></td>
-        <td class="inputcell"><input data-in="doc-2"></td><td class="inputcell"><input data-in="doc-3"></td>
-        <td class="inputcell"><input data-in="doc-4"></td><td class="inputcell"><input data-in="doc-5"></td>
-        <td class="inputcell"><input data-in="doc-6"></td><td class="num" data-out="docTot">0.0</td>
+        <td class="inputcell"><input data-in="doc-0" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-1" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-2" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-3" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-4" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-5" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="doc-6" type="number" step="0.01"></td>
+        <td class="num" data-out="docTot">0.0</td>
       </tr>
       <tr class="doctor" data-row="exams">
         <th>Exams</th>
-        <td class="inputcell"><input data-in="exams-0"></td><td class="inputcell"><input data-in="exams-1"></td>
-        <td class="inputcell"><input data-in="exams-2"></td><td class="inputcell"><input data-in="exams-3"></td>
-        <td class="inputcell"><input data-in="exams-4"></td><td class="inputcell"><input data-in="exams-5"></td>
-        <td class="inputcell"><input data-in="exams-6"></td><td class="num" data-out="examsTot">0.0</td>
+        <td class="inputcell"><input data-in="exams-0" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-1" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-2" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-3" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-4" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-5" type="number" step="1"></td>
+        <td class="inputcell"><input data-in="exams-6" type="number" step="1"></td>
+        <td class="num" data-out="examsTot">0.0</td>
       </tr>
       <tr class="doctor" data-row="od">
         <th>OD Aligned Hours <small class="muted">(LRFT Universal / Friendly PC only)</small></th>
-        <td class="inputcell"><input data-in="od-0"></td><td class="inputcell"><input data-in="od-1"></td>
-        <td class="inputcell"><input data-in="od-2"></td><td class="inputcell"><input data-in="od-3"></td>
-        <td class="inputcell"><input data-in="od-4"></td><td class="inputcell"><input data-in="od-5"></td>
-        <td class="inputcell"><input data-in="od-6"></td><td class="num" data-out="odTot">0.0</td>
+        <td class="inputcell"><input data-in="od-0" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-1" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-2" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-3" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-4" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-5" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="od-6" type="number" step="0.01"></td>
+        <td class="num" data-out="odTot">0.0</td>
       </tr>
-      <tr class="doctor">
-        <th>Earned Patient Care Hours <small class="muted">EMP max(Doc, Exams×0.6) · SUB 0 · LRFTU OD Aligned</small></th>
+      <tr class="doctor boldRow">
+        <th>Earned Patient Care Hours <small class="muted">EMP: max(Doc, Exams×0.6) vs baseline (8.8 if ΣExams>60 else 5.5) distributed by exam share · SUB: 0 · LRFTU: OD Aligned</small></th>
         <td class="num" data-out="earnedPC-0">0.0</td><td class="num" data-out="earnedPC-1">0.0</td>
         <td class="num" data-out="earnedPC-2">0.0</td><td class="num" data-out="earnedPC-3">0.0</td>
         <td class="num" data-out="earnedPC-4">0.0</td><td class="num" data-out="earnedPC-5">0.0</td>
@@ -137,10 +169,14 @@
       <!-- OTHER -->
       <tr class="other">
         <th>Other Hours / Earmarks</th>
-        <td class="inputcell"><input data-in="other-0"></td><td class="inputcell"><input data-in="other-1"></td>
-        <td class="inputcell"><input data-in="other-2"></td><td class="inputcell"><input data-in="other-3"></td>
-        <td class="inputcell"><input data-in="other-4"></td><td class="inputcell"><input data-in="other-5"></td>
-        <td class="inputcell"><input data-in="other-6"></td><td class="num" data-out="otherTot">0.0</td>
+        <td class="inputcell"><input data-in="other-0" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-1" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-2" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-3" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-4" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-5" type="number" step="0.01"></td>
+        <td class="inputcell"><input data-in="other-6" type="number" step="0.01"></td>
+        <td class="num" data-out="otherTot">0.0</td>
       </tr>
     </tbody>
   </table>
@@ -149,28 +185,79 @@
 <script>
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const days=[0,1,2,3,4,5,6], num=v=>parseFloat(v)||0, fmt=v=>Number.isFinite(v)?v.toFixed(1):"0.0", sum=a=>a.reduce((x,y)=>x+(+y||0),0);
-function readRow(p){return days.map(d=>num($(`[data-in="${p}-${d}"]`)?.value||"0"))}
-function writeRow(p,a){days.forEach(d=>{const el=$(`[data-out="${p}-${d}"]`);if(el)el.textContent=fmt(a[d])})}
+
+function readRow(p){ return days.map(d=> num($(`[data-in="${p}-${d}"]`)?.value||"0")); }
+function writeRow(p,a){ days.forEach(d=>{ const el=$(`[data-out="${p}-${d}"]`); if(el) el.textContent=fmt(a[d]); }); }
+
 function toggleByOD(){
- const od=$("#odType").value;
- const docDis=(od==="SUB")||(od==="LRFTU"),exDis=(od==="SUB")||(od==="LRFTU"),odDis=(od==="EMP")||(od==="SUB");
- const set=(k,d)=>{$$('tr[data-row="'+k+'"] td.inputcell').forEach(td=>{const i=$('input',td);i.disabled=d;td.classList.toggle('disabled',d);if(d)i.value=""})};
- set("doc",docDis);set("exams",exDis);set("od",odDis);recalc();
+  const od=$("#odType").value;
+  // SUB & LRFTU: disable Doctor/Exams. EMP: disable OD Aligned.
+  const docDis=(od==="SUB")||(od==="LRFTU"), exDis=(od==="SUB")||(od==="LRFTU"), odDis=(od==="EMP")||(od==="SUB");
+  const set=(k,d)=>{$$('tr[data-row="'+k+'"] td.inputcell').forEach(td=>{const i=$('input',td);i.disabled=d;td.classList.toggle('disabled',d);if(d)i.value="";});};
+  set("doc",docDis); set("exams",exDis); set("od",odDis);
+  recalc();
 }
+
 function recalc(){
- const labPct=num($("#labPct").value)/100,ret=readRow("retail"),u=readRow("units"),d=readRow("doc"),ex=readRow("exams"),od=readRow("od"),o=readRow("other"),odT=$("#odType").value;
- const eR=days.map(i=>Math.max(ret[i]*1.5,ret[i]+1+u[i]*0.75)),eL=days.map(i=>eR[i]*labPct),
- eP=days.map(i=>odT==="EMP"?Math.max(d[i],ex[i]*0.6):odT==="SUB"?0:od[i]),
- eT=days.map(i=>eR[i]+eL[i]+eP[i]+o[i]);
- writeRow("earnedRetail",eR);writeRow("earnedLab",eL);writeRow("earnedPC",eP);writeRow("earnedTotal",eT);
- const tot=(k,a)=>$(`[data-out="${k}Tot"]`).textContent=fmt(sum(a));
- tot("retail",ret);tot("units",u);tot("doc",d);tot("exams",ex);tot("od",od);tot("other",o);
- tot("earnedRetail",eR);tot("earnedLab",eL);tot("earnedPC",eP);tot("earnedTotal",eT);
+  const labPct = num($("#labPct").value)/100;
+
+  const retail = readRow("retail");
+  const units  = readRow("units");
+  const doc    = readRow("doc");
+  const exams  = readRow("exams");
+  const odal   = readRow("od");
+  const other  = readRow("other");
+
+  // Earned Retail per day
+  const eRetail = days.map(i => Math.max(retail[i]*1.5, retail[i] + 1 + units[i]*0.75));
+  // Earned Lab per day
+  const eLab    = days.map(i => eRetail[i] * labPct);
+
+  // Earned PC per day
+  const odType = $("#odType").value;
+
+  let ePC;
+  if(odType === "EMP"){
+    // per-day baseline: max(doc, exams*0.6)
+    const perDayBaseline = days.map(i => Math.max(doc[i], exams[i]*0.6));
+
+    // weekly baseline by exams total: 8.8 if ΣExams > 60 else 5.5
+    const exTotal = sum(exams);
+    const weeklyBaseline = (exTotal > 60 ? 8.8 : 5.5);
+
+    // distribute weeklyBaseline across days by exam share; if ΣExams==0, split evenly
+    const dist = days.map(i => (exTotal > 0 ? (exams[i]/exTotal) * weeklyBaseline : weeklyBaseline/7));
+
+    // final per day = max(per-day baseline, distributed baseline)
+    ePC = days.map(i => Math.max(perDayBaseline[i], dist[i]));
+  } else if(odType === "SUB"){
+    ePC = days.map(() => 0);
+  } else if(odType === "LRFTU"){
+    ePC = odal.slice();
+  } else {
+    ePC = days.map(() => 0);
+  }
+
+  // Earned Total per day
+  const eTot = days.map(i => eRetail[i] + eLab[i] + ePC[i] + other[i]);
+
+  // Write rows
+  writeRow("earnedRetail", eRetail);
+  writeRow("earnedLab",    eLab);
+  writeRow("earnedPC",     ePC);
+  writeRow("earnedTotal",  eTot);
+
+  // Totals
+  const w = (k,a)=>{ const el=$(`[data-out="${k}Tot"]`); if(el) el.textContent=fmt(sum(a)); };
+  w("retail", retail);  w("units",  units);  w("doc",    doc);   w("exams", exams);
+  w("od",     odal);    w("other",  other);  w("earnedRetail", eRetail);
+  w("earnedLab", eLab); w("earnedPC", ePC);  w("earnedTotal",  eTot);
 }
-document.addEventListener("DOMContentLoaded",()=>{
- $$("#calc input,#labPct").forEach(e=>e.addEventListener("input",recalc));
- $("#odType").addEventListener("change",toggleByOD);
- toggleByOD();recalc();
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  $$("#calc input,#labPct").forEach(e=>{ e.addEventListener("input", recalc); e.addEventListener("change", recalc); });
+  $("#odType").addEventListener("change", toggleByOD);
+  toggleByOD(); recalc();
 });
 </script>
 </body>
