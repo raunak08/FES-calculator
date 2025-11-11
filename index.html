@@ -18,7 +18,6 @@
   label{font-size:13px;color:#334155;font-weight:600}
   select,input{border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:14px;background:var(--input)}
   input[type="number"]{text-align:center;padding-right:28px;}
-
   table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
   thead th{background:var(--head);color:var(--headText);padding:8px;font-size:14px;border-right:1px solid #0d5e94}
   thead th:last-child{border-right:0}
@@ -58,11 +57,12 @@
       </select>
     </div>
     <div>
-      <label>Lab %</label><br/>
-      <input id="labPct" type="number" step="0.01" placeholder="e.g. 15.00" inputmode="decimal">
-      <div class="muted" style="max-width:420px;margin-top:6px;">
-        Derive Lab&nbsp;% from <strong>Total Lab Plan Hours ÷ Total Retail Plan Hours</strong> in your Earned Hours or Hours Planner.
-      </div>
+      <label>Weekly Total Lab Hours</label><br/>
+      <input id="weeklyLab" type="number" step="0.01" placeholder="e.g. 40.0">
+    </div>
+    <div>
+      <label>Weekly Total Retail Hours</label><br/>
+      <input id="weeklyRetail" type="number" step="0.01" placeholder="e.g. 200.0">
     </div>
   </div>
 
@@ -116,7 +116,7 @@
 
       <!-- LAB -->
       <tr class="lab boldRow">
-        <th>Earned Lab Hours <small class="muted">Earned Retail × Lab%</small></th>
+        <th>Earned Lab Hours <small class="muted">Earned Retail × (Lab ÷ Retail)</small></th>
         <td class="num" data-out="earnedLab-0">0.0</td><td class="num" data-out="earnedLab-1">0.0</td>
         <td class="num" data-out="earnedLab-2">0.0</td><td class="num" data-out="earnedLab-3">0.0</td>
         <td class="num" data-out="earnedLab-4">0.0</td><td class="num" data-out="earnedLab-5">0.0</td>
@@ -158,7 +158,7 @@
         <td class="num" data-out="odTot">0.0</td>
       </tr>
       <tr class="doctor boldRow">
-        <th>Earned Patient Care Hours <small class="muted">EMP: max(Doc, Exams×0.6) vs weekly baseline (8.8 if ΣExams&gt;60 else 5.5) distributed by exam share · SUB: 0 · LRFTU: OD Aligned</small></th>
+        <th>Earned Patient Care Hours <small class="muted">EMP: max(Doc, Exams×0.6) vs baseline distributed by exam share · SUB: 0 · LRFTU: OD Aligned</small></th>
         <td class="num" data-out="earnedPC-0">0.0</td><td class="num" data-out="earnedPC-1">0.0</td>
         <td class="num" data-out="earnedPC-2">0.0</td><td class="num" data-out="earnedPC-3">0.0</td>
         <td class="num" data-out="earnedPC-4">0.0</td><td class="num" data-out="earnedPC-5">0.0</td>
@@ -202,47 +202,12 @@ function toggleByOD(){
 }
 
 function recalc(){
-  const labPct = num($("#labPct").value)/100;
+  const weeklyLab = num($("#weeklyLab").value);
+  const weeklyRetail = num($("#weeklyRetail").value);
+  const labPct = weeklyRetail > 0 ? (weeklyLab / weeklyRetail) : 0;
+
   const retail = readRow("retail"), units  = readRow("units"), doc = readRow("doc"), exams = readRow("exams"), odal = readRow("od"), other  = readRow("other");
-
-  // Earned Retail per day — only apply +1 rule if Retail > 0
-  const eRetail = days.map(i => retail[i] > 0 ? Math.max(retail[i]*1.5, retail[i] + 1 + units[i]*0.75) : 0);
-
-  const eLab    = days.map(i => eRetail[i] * labPct);
   const odType = $("#odType").value;
-  let ePC;
 
-  if(odType === "EMP"){
-    const perDayBaseline = days.map(i => Math.max(doc[i], exams[i]*0.6));
-    const exTotal = sum(exams);
-    const weeklyBaseline = (exTotal > 60 ? 8.8 : 5.5);
-    const dist = days.map(i => (exTotal > 0 ? (exams[i]/exTotal) * weeklyBaseline : weeklyBaseline/7));
-    ePC = days.map(i => Math.max(perDayBaseline[i], dist[i]));
-  } else if(odType === "SUB"){
-    ePC = days.map(() => 0);
-  } else if(odType === "LRFTU"){
-    ePC = odal.slice();
-  } else {
-    ePC = days.map(() => 0);
-  }
-
-  const eTot = days.map(i => eRetail[i] + eLab[i] + ePC[i] + other[i]);
-  writeRow("earnedRetail", eRetail);
-  writeRow("earnedLab",    eLab);
-  writeRow("earnedPC",     ePC);
-  writeRow("earnedTotal",  eTot);
-
-  const w = (k,a)=>{ const el=$(`[data-out="${k}Tot"]`); if(el) el.textContent=fmt(sum(a)); };
-  w("retail", retail); w("units", units); w("doc", doc); w("exams", exams);
-  w("od", odal); w("other", other); w("earnedRetail", eRetail);
-  w("earnedLab", eLab); w("earnedPC", ePC); w("earnedTotal", eTot);
-}
-
-document.addEventListener("DOMContentLoaded", ()=>{
-  $$("#calc input,#labPct").forEach(e=>{ e.addEventListener("input", recalc); e.addEventListener("change", recalc); });
-  $("#odType").addEventListener("change", toggleByOD);
-  toggleByOD(); recalc();
-});
-</script>
-</body>
-</html>
+  // check if EMP type and if both Exams + Doctor inputs are zero
+  const empNeedsData = (odType==="EMP") && (sum(doc)===0 ||
